@@ -1,0 +1,27 @@
+(Mit skript führt ordnungsgemäß aus ist das erstellen des files-Verzeichnis, kopieren aller Daten im aktuellen Verze-
+ichnis und das zeilenweise sortierte einfügen der Daten im aktuellen Verzeichnis in myfiles.txt gemeint)
+(*² steht in diesem Kontext für "siehe *²")
+
+
+1. Keine relevanten Dateien: nur ueb01 vorhanden -> files ordner wird leer angelegt.
+
+2. 2 Dateien: klein.txt groß.txt -> Skript führt aus und in myfiles.txt steht zeilenweise "groß.txt klein.txt".
+
+3. Vorher nicht sortierte Dateien: mittel.txt klein.txt riesig.txt groß.txt -> Skript führt aus*² und in 
+myfiles.txt steht zeilenweise "riesig.txt groß.txt mittel.txt klein.txt".
+
+4. Mehrere große Dateien: riesig.txt riesig.txt klein.txt -> *² und in myfiles.txt steht zeilenweise "riesig.txt rie
+sig.txt klein.txt".
+
+5. Mehrere identisch große Dateien: riesig.txt klein.txt klein.txt mittel.txt -> *² und in myfiles.txt steht
+zeilenweise "riesig.txt mittel.txt klein.txt klein.txt".
+
+6. Sehr viele Dateien: 30 txt Dateien im Verzeichnis -> *² und in myfiles.txt stehen alle Dateien zeilenweise
+der größe nach sortiert.
+
+7. Keine Berechtigungen: für a ist rwx nicht gegeben -> Skript wird nicht ausgeführt und gibt ein Error aus das keine
+Berechtigungen vorhanden sind.
+
+8. Nicht .txt Dateien im aktuellen Ordner vorhanden -> a.pdf, b.css, c.html, abc.exe, ordnerName, text.txt, txt2.txt
+-> *² mit Uebernahme aller .txt Dateien in files ordner und in myfiles.txt stehen nur die .txt Dateien zeilenweise 
+sortiert. 

@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+#  Erstellt einen Unterordner 'files' und kopiert alle .txt Dateien im aktuellen Verzeichnis in den Zielordner,
+#  anschließend werden alle Dateien und Ordner im Zielordner der Größe nach aufsteigend sortiert zeilenweise
+#  in einer Datei 'myfiles' im aktuellen Ordner abgelegt.
+#
+#  Gleich große Dateien sind beliebig angeordnet, versteckte Dateien bzw. Verzeichnisse werden nicht berueck-
+#  sichtigt.
+#
+#  Author: co
+
+# 1. files erstellen
+# 2. alle .txt dateien in files packen (copy)
+# 3. myfiles.txt erstellen mit Liste aufsteigend sortiert
+
+# Files Ordner erstellen und alles im aktuellen Ordner in files kopieren
+# -p - parent verhindert das überschreiben des files Ordners und unterdrückt Fehlermeldung
+mkdir -p files
+cp *.txt files 2>/dev/null
+
+# alle Dateien und Ordner im Zielordner 'files' nach Groeße sortiert in die myfiles.txt Datei schreiben 
+# -Sr [S] - sortiert Dateien im angesprochenen Ordner der Größe nach, groß zu klein [r] - kehrt die sortierte Ausgabe um
+ls -Sr files >myfiles
