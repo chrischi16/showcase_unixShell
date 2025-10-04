@@ -1,0 +1,167 @@
+#!/bin/sh
+#   
+#   Dieses Skript analysiert und liest eine .tex Datei
+#
+#   Author: co
+
+# Gibt den Hilfetext aus
+# @stdout - Hilfetext
+# @stderr - 0 erfolg
+print_help() {
+    cat <<EOF
+Usage:
+
+  ueb04 -h | ueb04 --help
+
+    prints this help and exits
+
+  - or -
+
+  ueb04 INPUT OPTION
+
+    INPUT is a valid latex-File (.tex)
+
+    and OPTION is one of
+      -g, --graphics      prints a list of all included graphics
+      -s, --structure     prints the structure of the input file
+      -u, --usedpackages  prints a list of the used packages and their options
+EOF
+return 0
+}
+
+# Behandlung von Fehlerfaellen. Setzt die Fehlermeldung anhand des uebergebenen Fehlertyps zusammen.
+# $1 - Uebergabe des Fehlertyps.
+# @stdout - Erfolg der Funktion und des Programmes
+# @stderr - Entsprechende Fehlermeldung
+handle_Error() {
+  ERROR_CODE="$1" # Variable, keine strong quote
+  case "$ERROR_CODE" in # Errorcodes koennen verschiedene Werte haben
+    1) echo 'Error: illegal argument.' >&2;;
+    2) echo 'Error: insuficient argument count.' >&2;;
+    3) echo 'Error: unknown operation.' >&2;;
+    4) echo 'Error: invalid source data.' >&2;;
+    5) echo 'Error: too many arguments for help.' >&2;;
+    *) echo 'Error: unknown error.' >&2;;
+  esac
+  print_help >&2
+  exit "$ERROR_CODE"  # Variable, keine strong quote
+}
+
+# Early-Exits:
+# Hilfetext
+if [ "$1" = '-h' ] || [ "$1" = '--help' ] || [ "$#" -eq 0 ] ; then # -h und --help als strong quotes
+    if [ "$#" -eq 1 ]; then
+        print_help
+        exit 0
+    else
+        handle_Error 5
+    fi
+fi
+
+# { - - - Funktionen - - - }
+
+# Sucht nach einem bestimmten Pattern je nach Modus, entweder die {Argumente} heraus oder die {Argumente} + [Optionen]
+# $1 - Uebergebene .tex Datei
+# $2 - Gesuchtes Pattern z.b. '\includegraphics'
+# $3 - Filtermodus
+# @stdout - Liste mit gefilterten Elementen
+# @stderr - Entsprechende Fehlermeldung
+find_Pattern() {
+  # -n nur das ausgeben was mit p markiert wurde und Standardausgabe unterdrücken
+  # s/ #muster / #ersetzung /p sucht nach muster und ersetzt es durch ersetzung
+  # .* Beliebig viele Zeichen
+  # \( ... \) 'Zwischenspeichern in eine Gruppe \1'
+  # [^}]* beliebig viele Zeichen + Klammern ausschließen
+  # \1 ersetzt das gefundene Muster in Kombination mit s/ #muster / #ersetzung /p
+  # /p gibt die Zeile aus, wenn etwas ersetzt wurde
+
+  SOURCE="$1"
+  # Bsp.: '\includegraphics'
+  PATTERN="$2"
+  # 0 = NEIN, 1 = JA
+  INCLUDE_OPTIONS="$3"
+
+  case "$INCLUDE_OPTIONS" in
+    0)
+      # Nur das {Argument} rausgeben
+      cat "$SOURCE" | grep -o "\\$PATTERN\(\[[^]]*\]\)\?{[^}]*}" | grep -o '{[^}]*}' | tr -d '{}' 
+      # Pattern kann unterschiedlich sein, keine strong quotes
+      ;;
+    1)
+      # {Argument} + [Option] rausgeben
+      sed -En 's/.*\\usepackage\[(.*)\]\{(.*)\}.*/\2:\1/p; 
+      s/.*\\usepackage\{(.*)\}.*/\1:/p' "$1"
+      ;;
+    *)
+      handle_Error 3
+      ;;
+  esac
+
+  exit 0;
+}
+
+# Durchsucht die Grafiken in der uebergebenen .tex und gibt diese als Liste aus
+# $1 - Uebergebene .tex Datei
+# @stdout - Liste mit genutzten Grafiken in der .tex
+# @stderr - Entsprechende Fehlermeldung
+handle_Graphics() {
+
+  find_Pattern "$1" '\includegraphics' 0
+  exit 0
+}
+
+# Analysiert die Struktur der .tex File und gibt diese aus
+# $1 - Uebergebene .tex Datei
+# @stdout - Liste mit genutzten Strukturen in der .tex
+# @stderr - Entsprechende Fehlermeldung
+handle_Structure() {
+  tr '\\' '\n' < "$1" | grep -E '^(chapter|section|subsection)\{' | \
+  sed -E '
+    s/^chapter\{([^}]*)\}.*/\1/
+    s/^section\{([^}]*)\}.*/|-- \1/
+    s/^subsection\{([^}]*)\}.*/    |-- \1/
+  '
+  exit 0
+}
+
+# Schaut sich die genutzten Packages an und deren Optionen und gibt diese als Liste aus
+# $1 - Uebergebene .tex Datei
+# @stdout - Liste mit genutzten packages + optionen aus der .tex Datei
+# @stderr - Entsprechende Fehlermeldung
+handle_Packages() {
+
+  # 1) suche pattern \usepackage[...]{...} ODER \usepackage{...}
+  # 2) packe [...] und/oder {...} in Gruppen
+  # 3) ersetze durch die Gruppen -> nur die Optionen & Packages werden ausgegeben
+
+  find_Pattern "$1" '\usepackage' 1 | sort
+
+  exit 0;
+}
+# { - - - Hauptverarbeitung - - - }
+
+if [ "$#" -ne 2 ]; then
+  handle_Error 2
+fi
+
+if [ ! -f "$1" ] || [ ! -r "$1" ]; then
+  handle_Error 4
+fi
+
+case "$2" in
+  '-g'|'--graphics')
+    handle_Graphics "$1";
+  ;;
+  '-s'|'--structure')
+    handle_Structure "$1";
+  ;;
+
+  '-u'|'--usedpackages')
+    handle_Packages "$1";
+  ;;
+  
+  *) 
+    handle_Error 3
+    ;;
+esac
+exit 0;

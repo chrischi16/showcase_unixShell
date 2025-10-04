@@ -1,0 +1,8 @@
+# Ausgabedateien von Tests:
+*.out
+
+# NTFS-Alternate-Data-Stream-Dateien:
+*:Zone.Identifier 
+
+# Apple-Desktop-Services-Store-Dateien:
+.DS_Store

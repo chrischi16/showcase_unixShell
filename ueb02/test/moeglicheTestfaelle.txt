@@ -1,0 +1,32 @@
+(*² - steht für siehe vorheriges *²)
+(Quelldatei = die Datei aus denen die Daten zum sortieren und schreiben genommen werden)
+(Mit skript führt ordnungsgemäß aus ist die Herausfilterung von unerlaubten Zeichen, die sortierung dessen und das
+anlegen einer Zieldatei gemeint)
+
+[i] Die zugehörigen Testdateien sind zur Einfachheit F1,F2,...Fn benannt wurden und entsprechen immer 
+den Fallnummern in dieser Datei.
+* = Denkanstöße, bzw. Tests die man noch implementieren könnte
+
+0. Leere Datei: Quelldatei ist leer -> Skript funktioniert ordnungsgemäß*² und erzeugt dementsprechend eine leere Datei
+1. Best Case: Quelldatei möglichst sortiert vorhanden -> *²
+2. Worst Case: Quelldatei überhaupt nicht sortiert vorhanden -> *² + Zieldatei trotzdessen sortiert
+3. Mid Case: Quelldatei mäßig gemischt -> *² + Zieldatei trotzdessen sortiert
+4. Viele <Failed>: Quelldatei beinhaltet übermäßig viele <Failed> Wörter -> *² + Alle <Failed> wurden herausgefiltert
+5. Doppler Bewertung: Quelldatei beinhaltet Werte mit doppelten Kennzahlen und Bewertungen -> *² + Doppler werden zu-
+                      sammengefasst.
+6. Sehr viele Doppler Bewertung: Quelldatei beinhaltet viele Werte mit doppelten Kennzahlen und Bewertungen -> *² + 
+                                 Doppler werden zusammengefasst.
+7. Minimal: Sehr wenig Daten in Quelldatei -> *²
+8. Extrem Case: Sehr viele Angaben in Quelldatei ->  *² + Zieldatei ist trotzdessen sortiert
+9*. Negativ Zahlen: Negative Zahlen in Quelldate vorhanden -> Error ausgeben "Fehler - das Dateiformat ist ungültig" +
+                   Skript führt nicht aus.
+10. Zieldatei vorhanden: Die Zieldatei existiert bereits -> *² + Zieldatei wird überschrieben
+11. Zieldatei sortiert vorhanden: Die Zieldatei existiert bereits und ist auch schon sortiert -> *² + Zieldatei wird-
+                                  überschrieben. Evtl. eine Nachricht ausgeben: "[i] Hinweis - Zieldatei ist bereits
+                                  vorhanden und sortiert - Operation wurde dennoch ausgeführt"
+12. Sonstig ungültige Zeichen: Die Quelldatei beinhaltet ungültige Zeichen -> *² + Ungültige Zeichen herausgefiltert
+13*. Mehr als 4 Felder: Die Quelldatei hat mehr als 3 Felder -> Error ausgeben "Fehler - das Dateiformat ist ungültig"
+    und Skript nicht ausführen
+14*. Weniger als 3 Felder: Die Quelldatei hat weniger als 3 Felder -> Error ausgeben "Fehler - das Dateiformat ist ung-
+    ültig." und Skript nicht ausführen.
+15. Doppler Kennzahl: Kennzahl ist in Quelldatei mehrfach vorhanden -> *²

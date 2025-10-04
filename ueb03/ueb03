@@ -1,0 +1,193 @@
+#!/bin/sh
+#   
+#   Dieses Skript führt einige mathematische Operationen aus:
+#   ADD, SUB, MUL, DIV, MOD, EXP
+#
+#   Author: co
+
+# Gibt den Hilfetext aus
+# @stdout - Hilfetext
+# @stderr - 0 erfolg
+print_help() {
+    cat <<EOF
+Usage:
+
+  ueb03 -h | ueb03 --help
+  
+    prints this help and exits
+  
+  - or -
+  
+  ueb03 NUM1 NUM2 OPERATION [NUM OPERATION] ...
+  
+    provides a simple calculator using a postfix notation. A call consists of
+    two numbers and an operation optionally followed by an arbitrary number
+    of number-operation pairs.
+  
+    NUM1, NUM2 and NUM:
+      any integer (negative, positive and zero)
+  
+    NUM is treated in the same way as NUM2 whereas NUM1 in this case is the
+    result of the previous operation.
+  
+    OPERATION:
+      ADD -> adds NUM1 and NUM2
+      SUB -> subtracts NUM2 from NUM1
+      MUL -> multiplies NUM1 and NUM2
+      DIV -> divides NUM1 by NUM2 and returns the integer result
+      MOD -> divides NUM1 by NUM2 and returns the integer remainder
+      EXP -> raises NUM1 to the power of NUM2
+  
+  At the end of a successful call the history of all intermediate calculations 
+  is printed out to stderr.
+EOF
+return 0
+}
+
+# Behandlung von Fehlerfaellen. Setzt die Fehlermeldung anhand des uebergebenen Fehlertyps zusammen.
+# $1 - Uebergabe des Fehlertyps.
+# @stdout - Erfolg der Funktion und des Programmes
+# @stderr - Entsprechende Fehlermeldung
+handle_Error() {
+  case "$1" in
+    'ERR_INS_ARG') echo 'Error: insufficient argument count.' >&2; print_help >&2; exit 1;;
+    'ERR_INV_OP3') echo 'Error: invalid operation as 3rd programm parameter.' >&2; print_help >&2; exit 2;;
+    'ERR_INV_OPC') echo 'Error: invalid operation as continous programm parameter.' >&2; print_help >&2; exit 3;;
+    'ERR_INS_NUM') echo 'Error: insufficient amount of numbers in programm parameters.' >&2; print_help >&2; exit 4;;
+    'ERR_INV_NP') echo 'Error: invalid numbers in programm parameters.' >&2; print_help >&2; exit 5;;
+    'ERR_INV_NC') echo 'Error: invalid number in continous programm parameter.' >&2; print_help >&2; exit 6;;
+    'ERR_INS_NC') echo 'Error: insufficient amount of numbers in continous programm parameters.' >&2; print_help >&2; 
+      exit 7;;
+    'ERR_DIV0') echo 'Error: division by 0.' >&2; print_help >&2; exit 8;;
+    'ERR_ILL_NN') echo 'Error: illegal negative number argument.' >&2; print_help >&2; exit 9;;
+    'ERR_ILL_ARG') echo 'Error: illegal arguments.' >&2; print_help >&2; exit 10;;
+    *) echo 'Error: unknown error.' >&2; print_help >&2; exit 12;;
+  esac
+  return 0
+}
+
+# Berechnet die Summe
+# $1 - Zahl 1
+# $2 - Zahl 2
+# @stdout - Ergebnis
+op_add() {
+  echo $(( $1 + $2 ))
+  return 0
+}
+
+# Berechnet die Differenz
+# $1 - Zahl 1
+# $2 - Zahl 2
+# @stdout - Ergebnis
+op_sub() {
+  echo $(( $1 - $2 ))
+  return 0
+}
+
+# Berechnet das Produkt
+# $1 - Zahl 1
+# $2 - Zahl 2
+# @stdout - Ergebnis
+op_mul() {
+  echo $(( $1 * $2 ))
+  return 0
+}
+
+# Berechnet die Division
+# $1 - Zahl 1
+# $2 - Zahl 2
+# @stdout - Ergebnis
+op_div() {
+  if [ "$2" -eq 0 ]; then
+    handle_Error ERR_DIV0
+  fi
+  echo $(( $1 / $2 ))
+  return 0
+}
+
+# Berechnet den Modulo
+# $1 - Zahl 1
+# $2 - Zahl 2
+# @stdout - Ergebnis
+op_mod() {
+  if [ "$2" -eq 0 ]; then
+    handle_Error ERR_DIV0
+    return 1
+  fi
+  echo $(( $1 % $2 ))
+  return 0
+}
+
+# Berechnet den Exponenten
+# $1 - Zahl 1
+# $2 - Zahl 2
+# @stdout - Ergebnis
+op_exp() {
+  if [ "$2" -lt 0 ]; then
+    handle_Error ERR_ILL_NN
+  fi
+  EXP_RESULT=1
+  i=0
+  while [ "$i" -lt "$2" ]; do
+    EXP_RESULT=$(( EXP_RESULT * $1 ))
+    i=$(( i + 1 ))
+  done
+  echo $EXP_RESULT
+  return 0
+}
+
+# - - - Hauptteil - - -
+
+# Early-Exits:
+# Hilfetext
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$#" -eq 0 ] ; then
+    if [ "$#" -eq 1 ]; then
+        print_help
+        exit 0
+    else
+        handle_Error ERR_INS_ARG
+    fi
+fi
+
+# Fehlerhafte Aufrufssyntax: bsp: 1 1 DIV 1
+if [ "$#" -eq 4 ]; then
+  handle_Error ERR_INS_ARG
+fi
+
+# Fehlerhafte Aufrufssyntax: bsp: 1 1 DIV 1 DIV 1 ...
+if [ $(( $# % 2 )) -ne 1 ]; then
+  handle_Error ERR_INS_ARG
+fi
+
+RESULT=$1
+shift
+while [ $# -ge 2 ]; do
+  CURRENT_NUM1=$RESULT
+  CURRENT_NUM2=$1
+  CURRENT_OPERATION=$2
+  CURRENT_OPERATION_CONVERTED=$(echo "$CURRENT_OPERATION" | tr 'A-Z' 'a-z')
+
+  case "$CURRENT_OPERATION" in
+    'ADD'|'SUB'|'MUL'|'DIV'|'MOD'|'EXP')
+      RESULT=$(op_"$CURRENT_OPERATION_CONVERTED" "$RESULT" "$CURRENT_NUM2")
+      CACHE_OP_RETURN=$?
+
+      # Check ob in Operation ein Fehler vorhanden war
+      if [ $CACHE_OP_RETURN -eq 0 ]; then
+        echo "> $CURRENT_OPERATION $CURRENT_NUM1 $CURRENT_NUM2" >&2
+      else
+        exit $?
+      fi
+      ;;
+    *)
+      handle_Error 'ERR_INV_OPC'
+      ;;
+  esac
+  shift 2
+done
+
+# 2 2 add 2 add 2 add
+# 
+
+echo $RESULT
+exit 0

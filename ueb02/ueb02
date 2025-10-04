@@ -1,0 +1,31 @@
+#!/bin/sh
+#   
+#   Dieses Skript liest eine Ausgabe eines Umfragetools per stdin und schreibt eine sortierte Datei + gibt die Bezei-
+#   chnung des schlechtesten Eintrags auf stdout aus.
+#
+#   Es wird sortiert nach folgenden Kriterien:
+#   - Alle Zeilen der Eingabe absteigend sortiert nach Bewertung
+#       - wenn nicht eindeutig -> nach erstem Feld (der Kennzahl) ebenfalls absteigend sortieren.
+#           + schlechtester Eintrag steht demnach ganz unten in der Datei
+#   - Wenn Zeilen nicht unterscheidbar sind (gleiche Bewertung || gleiche Kennzahl) wird nur eine der beiden Zeilen
+#     in die Ausgabedatei geschrieben
+#   - Ungültige Zeilen (Zeilen die nicht: Kennzahl;Bezeichnung;Bewertung) werden auch ignoriert.
+#
+#   $1 - Name der Ausgabedatei 
+#
+#   Author: co
+
+# -iv [i] - ignoriert übergebenes 'Muster' [v] - invertiert die passenden Zeilen
+# -t - Feldseperator teilt die Felder der CSV Datei auf anhand eines übergebenen Zeichens hier ';'
+#       Dadurch definieren wir die Felder
+# -k3,3n [k] - definieren eines Sortier-'Schlüssels' von start [3,] bis ende [,3] mit dem Sortierkriterium [n] - nu-
+#               mmerrierte Sortierung.
+#         [r] - umgekehrt sortieren.
+# "$1" - 1. Argument mit dem das ./ueb02 Skript aufgerufen wird
+grep -iv "<failed>" | sort -t ';' -k3,3nr -k1,1nr | uniq > "$1"; 
+
+# "$1" - 1. Argument mit dem das ./ueb02 Skript aufgerufen wird
+# -n 1 - gibt an das tail nur die Letzten x Zeilen ausgeben soll hier '1' -> also eine Zeile
+# -d ';' - Trennzeichen für die cut operation hier ';'
+# -f - cut Operation auf entsprechendes Feld begrenzen hier also '2' Feld 2 welches die Bezeichnung ist
+tail -n 1 "$1" | cut -d ';' -f2
